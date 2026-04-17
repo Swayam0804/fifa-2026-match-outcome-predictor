@@ -6,7 +6,8 @@ A machine learning project that predicts international football match outcomes (
 
 ## Live App
 
-🔗 **[http://172.16.0.2:8501](https://swayam0804-fifa-2026-match-outcome-predictor-app-ap0blr.streamlit.app/)**
+🔗 **[⚽ FIFA World Cup 2026 — Match Outcome Predictor
+](https://swayam0804-fifa-2026-match-outcome-predictor-app-ap0blr.streamlit.app/)**
 
 ---
 
