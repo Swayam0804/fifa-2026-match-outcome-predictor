@@ -147,3 +147,58 @@ After any update, just `git push` and Streamlit Cloud auto-redeploys within 1–
 
 [All International Football Results](https://www.kaggle.com/datasets/patateriedata/all-international-football-results)
 ~45,000 international match results including scores, teams, tournament type, and neutral ground flag. Updated through 31 March 2026.
+
+---
+
+## ☁️ Future Deployment Path — Google Cloud Platform
+
+The current deployment runs on **Streamlit Cloud** — lightweight, free, and sufficient
+for a portfolio app. A production-grade version of this system would migrate to
+**Google Cloud Platform (GCP)** using the following architecture:
+
+### Current vs. Production Architecture
+
+| Stage              | Current (Streamlit Cloud)         | Production (GCP)                        |
+|--------------------|-----------------------------------|-----------------------------------------|
+| Data Storage       | `results.csv` (local / GitHub)    | **Cloud Storage (GCS)** bucket          |
+| Data Processing    | Pandas in `train_model.py`        | **BigQuery** for large-scale SQL transforms |
+| Model Training     | Scikit-learn locally              | **Vertex AI Training** (managed job)    |
+| Model Versioning   | `artifacts/model.pkl` in repo     | **Vertex AI Model Registry**            |
+| Model Serving      | Loaded in-memory by Streamlit     | **Vertex AI Endpoint** (REST API)       |
+| App Frontend       | Streamlit Cloud                   | Streamlit → calls Vertex AI Endpoint    |
+| Monitoring         | None                              | **Cloud Monitoring** (drift + latency)  |
+
+### Pipeline Flow
+
+```text
+Raw Match Data (CSV)
+        │
+        ▼
+Cloud Storage (GCS)          ← centralized data lake
+        │
+        ▼
+     BigQuery                ← feature engineering via SQL at scale
+        │
+        ▼
+Vertex AI Training Job       ← same RandomForest logic, managed compute
+        │
+        ▼
+Vertex AI Model Registry     ← versioned model store
+        │
+        ▼
+ Vertex AI Endpoint          ← REST API (input: features → output: probabilities)
+        │
+        ▼
+   Streamlit App             ← calls endpoint instead of loading joblib locally
+        │
+        ▼
+  Cloud Monitoring           ← tracks prediction drift as new match data arrives
+```
+
+---
+
+### How the Code Is Already Structured for This
+
+`predictor.py` provides a unified prediction interface. Set `USE_VERTEX_AI=true`
+as an environment variable to switch from local joblib to Vertex AI Endpoint —
+zero code changes required in the app.
