@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import joblib
+import predictor
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -113,17 +114,15 @@ def predict_match(t1, t2, data, tournament="FIFA World Cup", neutral=True):
     wr1, gf1, ga1 = get_recent_form(t1, data)
     wr2, gf2, ga2 = get_recent_form(t2, data)
     h2h = h2h_win_rate(t1, t2, data)
-    feats = np.array([[
+    features = [
         wr1, wr2, gf1, gf2, ga1, ga2, h2h,
         wr1 - wr2, gf1 - gf2,
         encode_tournament(tournament), 1 if neutral else 0
-    ]])
-    probs     = model.predict_proba(feats)[0]
-    classes   = le.classes_
-    result    = {c: round(p * 100, 1) for c, p in zip(classes, probs)}
-    predicted = classes[np.argmax(probs)]
+    ]
+    probs_dict = predictor.predict(features, model=model, le=le)
+    result     = {c: round(p * 100, 1) for c, p in probs_dict.items()}
+    predicted  = max(probs_dict, key=probs_dict.get)
     return result, predicted, wr1, wr2, gf1, gf2
-
 
 # ── ui tabs ────────────────────────────────────────────────────────────────────
 
